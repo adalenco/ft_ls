@@ -1,13 +1,4 @@
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <stdlib.h>
-#define OP_L (options[0])
-#define OP_RR (options[1])
-#define OP_A (options[2])
-#define OP_R (options[3])
-#define OP_T (options[4])
+#include "ft_ls.h"
 
 void		ft_putstr(char *str)
 {
@@ -29,83 +20,53 @@ void		b_zero(char *str, int n)
 	}
 }
 
-void		get_option(char *op, char *options)
+void		ft_print_ls(DIR *dirp, char options[6])
 {
-	int		i;
-
-	i = 1;
-	while (op[i] != '\0')
+	struct dirent *entry;
+	struct stat buf;
+	int			dir;
+	
+	dir = 0;
+	printf("%-15s      name\n%-15s%s\n\n", "size", "----", "      ----");
+	while ((entry = readdir(dirp))  != NULL)
 	{
-		if (op[i] == 'l')
-			OP_L = 1;
-		else if (op[i] == 'R')
-			OP_RR = 1;
-		else if (op[i] == 'a')
-			OP_A = 1;
-		else if (op[i] == 'r')
-			OP_R = 1;
-		else if (op[i] == 't')
-			OP_T = 1;
+		if (entry->d_name[0] == '.' && OP_A == 0)
+			;
 		else
 		{
-			ft_putstr("ls: illegal option -- ");
-			write(1, &op[i], 1);
-			ft_putstr("\nusage: ls [-Ralrt] [file ...]\n");
-			exit(0);
+			stat(entry->d_name, &buf);
+			printf("%-15u", (unsigned int)buf.st_size);
+			if (S_ISDIR(buf.st_mode))
+			{
+				dir++;
+				printf("d     ");
+			}
+			else
+				printf("      ");
+			printf(entry->d_name);
+			printf("\n");
 		}
-		i++;
-	}
-}
-
-void		parse_av(char *options, char **av)
-{
-	int		i = 0;
-
-	while (av[i])
-	{
-		if (av[i][0] == '-')
-			get_option(av[i], options);
-		i++;
 	}
 }
 
 int			main(int ac, char **av)
 {
 	DIR *dirp;
-	struct dirent *entry;
+
 	int		i;
 	char	options[6];
-	struct stat buf;
+	char		*path;
+	char		mode[11];
 
+	path = "./";
 	b_zero(options, 6);
+	b_zero(mode, 11);
 	i = 0;
 	if (ac > 1)
 		parse_av(options, av);
-	stat("./a.exe", &buf);
-	printf("\n%u\n", (unsigned int)buf.st_size);
-	dirp = opendir(".");
-	while ((entry = readdir(dirp))  != NULL)
-	{
-		if (i / 3 == 1)
-		{
-			write(1, "\n", 1);
-			i = 0;
-		}
-		if (entry->d_name[0] == '.')
-		{
-			if (OP_A == 1)
-			{
-				ft_putstr(entry->d_name);
-				ft_putstr("        ");
-			}
-		}
-		else
-		{
-			ft_putstr(entry->d_name);
-			ft_putstr("        ");
-		}
-		i++;
-	}
+	dirp = opendir(path);
+	ft_print_ls(dirp, options);
+	
 	closedir(dirp);
 	return (0);
 }
