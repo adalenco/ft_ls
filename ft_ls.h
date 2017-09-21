@@ -26,7 +26,7 @@ typedef	struct		s_list
 	void			*next;
 }					t_list;
 
-int			parse_av(char *options, char **av);
+int			parse_av(char *options, char **av, char *path);
 void		get_option(char *op, char options[6]);
 void		ft_putstr(char *str);
 int			ft_parse_ls(DIR *dirp, char options[6], char *path);

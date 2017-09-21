@@ -2,13 +2,15 @@
 
 
 
-int	ft_rec_mode(t_list *list, struct dirent *entry)
+int	ft_rec_mode(t_list *list, struct dirent *entry, char *path)
 {
 	struct stat  buf;
 	int   dir;
+	char *file;
 
+	file = ft_strjoin3(path, "/", entry->d_name);
 	dir = 0;
-	stat(entry->d_name, &buf);
+	stat(file, &buf);
 	list->size = (unsigned int)buf.st_size;
 	if (buf.st_mode & S_IFDIR)
 	{
@@ -55,12 +57,11 @@ void	ft_recursive(t_list *start, char options[6], char *path)
 	{
 		if (start->mode[0] == 'd')
 		{
-			if (npath)
-				free(npath);
 			npath = ft_strjoin3(path, "/", start->name);
 			dirp = opendir(npath);
 			ft_parse_ls(dirp, options, npath);
 			closedir(dirp);
+			free(npath);
 		}
 		start = start->next;
 	}
@@ -88,7 +89,7 @@ int		ft_parse_ls(DIR *dirp, char options[6], char *path)
 			;
 		else
 		{
-			dir += ft_rec_mode(list, entry);
+			dir += ft_rec_mode(list, entry, path);
 			if ((list->next = (t_list *)malloc(sizeof(t_list))) == NULL)
 				return (-1);
 			list = list->next;
@@ -117,18 +118,20 @@ int				main(int ac, char **av)
 
 	arg = 0;
 	ft_bzero(options, 6);
+	if ((path = (char *)malloc(2)) == NULL)
+		return (1);
+	strcpy(path, ".");
 	if (ac > 1 && av[1][0] == '-')
 		get_option(av[1], options);
 	if (ac > 1)
-		arg = parse_av(options, av);
+		arg = parse_av(options, av, path);
 	if (arg == 0)
 	{
-		if ((path = (char *)malloc(2)) == NULL)
-			return (1);
-		strcpy(path, ".");
+
 		dirp = opendir(path);
 		ft_parse_ls(dirp, options, path);
 		closedir(dirp);
 	}
+	free(path);
 	return (0);
 }

@@ -28,10 +28,10 @@ void		get_option(char *op, char options[6])
 	}
 }
 
-int			parse_av(char options[6], char **av)
+int			parse_av(char options[6], char **av, char *path)
 {
 	DIR     *dirp;
-	char	*path;
+	char	*npath;
 	int		i;
 	char	*tmp;
 	int		arg;
@@ -45,18 +45,17 @@ int			parse_av(char options[6], char **av)
 		else if (av[i][0] == '-')
 		{
 			printf("usage : all flags on the same \"-\"");
-			exit(1);
+			return (-1);
 		}
 		else
 		{
-			if (path)
-				free(path);
-			if ((path = (char *)malloc(ft_strlen(av[i]))) == NULL)
-				return (-1);
-			strcpy(path, av[i]);
-			dirp = opendir(path);
-			ft_parse_ls(dirp, options, path);
+			npath = ft_strjoin3(path, "/", av[i]);
+			if ((dirp = opendir(npath)) == NULL)
+				; // recuperer errno -> ENOTDIR
+			ft_parse_ls(dirp, options, npath);
 			closedir(dirp);
+			free(npath);
+			arg++;
 		}
 		i++;
 	}
